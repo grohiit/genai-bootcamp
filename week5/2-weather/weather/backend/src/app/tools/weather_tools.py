@@ -1,7 +1,8 @@
 import requests
 from typing import List, Optional
 from pydantic import BaseModel, Field
-from strands_agents_tools.tools.python import PythonTool
+from strands import tool
+
 
 
 DEFAULT_CITIES: List[str] = [
@@ -79,6 +80,15 @@ def _format_tv_script(city_to_weather: List[tuple[str, dict]]) -> str:
     return "\n".join(segments)
 
 
+@tool(
+    name="weather_report",
+    description=(
+        "Generates a scripted TV weather report using live data from wttr.in for "
+        "any cities provided. Optionally accepts a list of cities; otherwise uses "
+        "default major world cities."
+    ),
+)
+
 def generate_weather_report(input_data: WeatherReportInput) -> str:
     cities = input_data.cities or DEFAULT_CITIES
 
@@ -93,15 +103,7 @@ def generate_weather_report(input_data: WeatherReportInput) -> str:
     return _format_tv_script(city_to_weather)
 
 
-weather_report_tool = PythonTool(
-    name="weather_report",
-    description=(
-        "Generates a scripted TV weather report using live data from wttr.in for "
-        "any cities provided. Optionally accepts a list of cities; otherwise uses "
-        "default major world cities."
-    ),
-    input_schema=WeatherReportInput,
-    handler=generate_weather_report,
-)
+# Backward-compatible export for code expecting a variable
+weather_report_tool = generate_weather_report
 
 
