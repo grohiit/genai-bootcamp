@@ -46,13 +46,7 @@ def create_agent(session_id: str) -> Agent:
         session_manager_kwargs["prefix"] = state_prefix
 
     session_manager = S3SessionManager(**session_manager_kwargs)
-    agent = Agent(model=model_id, session_manager=session_manager)
-    # Register custom Python tools (weather report, etc.)
-    try:
-        agent.add_tools([weather_report_tool])
-        logger.info("Registered tools: weather_report")
-    except Exception as e:
-        logger.warning("Failed to register tools: %s", e)
+    agent = Agent(model=model_id, session_manager=session_manager, tools=[weather_report_tool])
     logger.info("Agent initialized for session %s", session_id)
     return agent
 

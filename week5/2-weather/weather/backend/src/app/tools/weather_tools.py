@@ -1,109 +1,46 @@
 import requests
-from typing import List, Optional
+from typing import Optional
 from pydantic import BaseModel, Field
 from strands import tool
 
 
-
-DEFAULT_CITIES: List[str] = [
-    "Paris",
-    "London",
-    "New York",
-    "Tokyo",
-    "Sydney",
-    "Toronto",
-    "Berlin",
-    "Mumbai",
-    "São Paulo",
-    "Cairo",
-]
-
-
-class WeatherReportInput(BaseModel):
-    cities: Optional[List[str]] = Field(
-        default=None,
-        description=("List of city names to include. If omitted, uses default cities."),
+class CityWeatherInput(BaseModel):
+    city: str = Field(
+        default="Paris",
+        description="City name to fetch weather for (e.g., 'Paris').",
     )
 
 
-def _fetch_city_weather(city: str) -> dict:
+@tool(
+    name="weather_report_tool",
+    description=(
+        "Returns current weather for a single city using wttr.in. "
+        "Defaults to Paris if no city is provided."
+    ),
+)
+def weather_report_tool(input_data: CityWeatherInput) -> str:
+    """Get weather for a single city using wttr.in."""
+    city = input_data.city
+    
+    # Fetch weather data from wttr.in
     response = requests.get(
         f"https://wttr.in/{city}", params={"format": "j1"}, timeout=10
     )
     response.raise_for_status()
-    return response.json()
-
-
-def _format_tv_script(city_to_weather: List[tuple[str, dict]]) -> str:
-    intro = (
-        "Good evening! Here's your TV weather report, "
-        "covering conditions across the selected cities."
-    )
-
-    segments: List[str] = [intro, ""]
-
-    for city, data in city_to_weather:
-        try:
-            current = data["current_condition"][0]
-            temp_c = current.get("temp_C")
-            feels_c = current.get("FeelsLikeC")
-            desc = (current.get("weatherDesc") or [{"value": ""}])[0]["value"]
-            wind_kph = current.get("windspeedKmph")
-            wind_dir = current.get("winddir16Point")
-            humidity = current.get("humidity")
-
-            segment = (
-                f"In {city}, it's {desc.lower()} right now, "
-                f"around {temp_c}°C (feels like {feels_c}°C). "
-                f"Winds {wind_dir or ''} at about {wind_kph} km/h, "
-                f"humidity near {humidity}%."
-            )
-
-            # Add a short daytime outlook if available
-            today_hours = (data.get("weather") or [{}])[0].get("hourly") or []
-            if today_hours:
-                noon_blocks = [h for h in today_hours if h.get("time") in {"1200", "1500"}]
-                if noon_blocks:
-                    noon = noon_blocks[0]
-                    noon_desc = (noon.get("weatherDesc") or [{"value": ""}])[0]["value"]
-                    noon_temp = noon.get("tempC")
-                    segment += f" Later today: {noon_desc.lower()}, near {noon_temp}°C."
-
-            segments.append(segment)
-        except Exception:
-            segments.append(f"In {city}, weather data is currently unavailable.")
-
-    wrap = (
-        "That's the snapshot for now. Stay tuned for updates, and have a great evening!"
-    )
-    segments.extend(["", wrap])
-    return "\n".join(segments)
-
-
-@tool(
-    name="weather_report",
-    description=(
-        "Generates a scripted TV weather report using live data from wttr.in for "
-        "any cities provided. Optionally accepts a list of cities; otherwise uses "
-        "default major world cities."
-    ),
-)
-
-def generate_weather_report(input_data: WeatherReportInput) -> str:
-    cities = input_data.cities or DEFAULT_CITIES
-
-    city_to_weather: List[tuple[str, dict]] = []
-    for city in cities:
-        try:
-            data = _fetch_city_weather(city)
-            city_to_weather.append((city, data))
-        except Exception:
-            city_to_weather.append((city, {}))
-
-    return _format_tv_script(city_to_weather)
-
-
-# Backward-compatible export for code expecting a variable
-weather_report_tool = generate_weather_report
-
-
+    data = response.json()
+    
+    # Format the weather report
+    try:
+        current = data["current_condition"][0]
+        temp_c = current.get("temp_C")
+        feels_c = current.get("FeelsLikeC")
+        desc = (current.get("weatherDesc") or [{"value": ""}])[0]["value"]
+        wind_kph = current.get("windspeedKmph")
+        wind_dir = current.get("winddir16Point") or ""
+        humidity = current.get("humidity")
+        return (
+            f"Weather in {city}: {desc.lower()}, {temp_c}°C (feels like {feels_c}°C). "
+            f"Winds {wind_dir} at {wind_kph} km/h, humidity {humidity}%."
+        )
+    except Exception:
+        return f"Weather data for {city} is currently unavailable."
