@@ -51,6 +51,7 @@ def create_agent(session_id: str) -> Agent:
     You are also able to convert temperatures between Fahrenheit and Celsius.
     You are also able to get the weather forecast for a given city.
     You have to always respond in the same language as the user's question.
+    If you don't know the answer, just say so. Don't make up an answer.
     """
     agent = Agent(model=model_id, session_manager=session_manager, tools=[get_current_weather, get_weather_forecast, convert_temperature], system_prompt=SYSTEM_PROMPT)
     logger.info("Agent initialized for session %s", session_id)
