@@ -1,7 +1,9 @@
 name: Deploy W5 - Weather
 
 on:
-  workflow_dispatch:
+  push:
+    paths:
+      - 'week5/2-weather/**'
 
 jobs:
   deploy:
