@@ -1,13 +1,7 @@
 import requests
 from typing import List, Optional
 from pydantic import BaseModel, Field
-
-try:
-    # Prefer the dedicated tools package if available
-    from strands_agents_tools.python import PythonTool  # type: ignore
-except Exception:  # Fallback for older versions
-    # Older versions exposed tools under strands.tools
-    from strands.tools import PythonTool  # type: ignore
+from strands_agents_tools.tools.python import PythonTool
 
 
 DEFAULT_CITIES: List[str] = [
