@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
+from app.tools.weather_tools import weather_report_tool
 from strands import Agent
 from strands.session.s3_session_manager import S3SessionManager
 import boto3
@@ -46,6 +47,12 @@ def create_agent(session_id: str) -> Agent:
 
     session_manager = S3SessionManager(**session_manager_kwargs)
     agent = Agent(model=model_id, session_manager=session_manager)
+    # Register custom Python tools (weather report, etc.)
+    try:
+        agent.add_tools([weather_report_tool])
+        logger.info("Registered tools: weather_report")
+    except Exception as e:
+        logger.warning("Failed to register tools: %s", e)
     logger.info("Agent initialized for session %s", session_id)
     return agent
 
