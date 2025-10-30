@@ -39,6 +39,13 @@
       button:disabled {
         background-color: #aaa;
       }
+      .clear-button {
+        background-color: #dc3545;
+        margin-top: 10px;
+      }
+      .clear-button:hover {
+        background-color: #c82333;
+      }
       #response-container {
         margin-top: 20px;
         padding: 10px;
@@ -82,6 +89,7 @@
         ></textarea>
         <button type="submit">Send</button>
       </form>
+      <button id="clear-chat-button" class="clear-button">Clear Chat</button>
       <div id="response-container"></div>
     </div>
 
@@ -92,6 +100,7 @@
       const promptInput = document.getElementById('prompt-input')
       const responseContainer = document.getElementById('response-container')
       const submitButton = form.querySelector('button')
+      const clearChatButton = document.getElementById('clear-chat-button')
 
       function renderMarkdown(element, text) {
         try {
@@ -144,6 +153,14 @@
           console.error('Failed to load chat history:', error)
           responseContainer.innerHTML = 'Error loading chat history.'
         }
+      })
+
+      clearChatButton.addEventListener('click', () => {
+        // Delete the session_id cookie by setting it to expire in the past
+        document.cookie =
+          'session_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+        // Reload the page to start a new chat
+        window.location.reload()
       })
 
       form.addEventListener('submit', async (e) => {
