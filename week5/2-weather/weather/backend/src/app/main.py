@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from tools.weather_tools import weather_report_tool
+from tools.weather_tools import get_weather_tool
 from strands import Agent
 from strands.session.s3_session_manager import S3SessionManager
 import boto3
@@ -46,7 +46,7 @@ def create_agent(session_id: str) -> Agent:
         session_manager_kwargs["prefix"] = state_prefix
 
     session_manager = S3SessionManager(**session_manager_kwargs)
-    agent = Agent(model=model_id, session_manager=session_manager, tools=[weather_report_tool])
+    agent = Agent(model=model_id, session_manager=session_manager, tools=[get_weather_tool])
     logger.info("Agent initialized for session %s", session_id)
     return agent
 

@@ -1,27 +1,18 @@
 import requests
-from typing import Optional
-from pydantic import BaseModel, Field
 from strands import tool
 
-
-class CityWeatherInput(BaseModel):
-    city: str = Field(
-        default="Paris",
-        description="City name to fetch weather for (e.g., 'Paris').",
-    )
-
-
-@tool(
-    name="weather_report_tool",
-    description=(
-        "Returns current weather for a single city using wttr.in. "
-        "Defaults to Paris if no city is provided."
-    ),
-)
-def weather_report_tool(input_data: CityWeatherInput) -> str:
-    """Get weather for a single city using wttr.in."""
-    city = input_data.city
+@tool
+def get_weather_tool(city: str) -> str:
+    """
+    Get weather for a single city using wttr.in.
     
+    Args:
+        city: City name to fetch weather for (e.g., 'Paris').
+    
+    Description:
+        Returns current weather for a single city using wttr.in.
+        Defaults to Paris if no city is provided.
+    """
     # Fetch weather data from wttr.in
     response = requests.get(
         f"https://wttr.in/{city}", params={"format": "j1"}, timeout=10
