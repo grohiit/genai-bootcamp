@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from app.tools.weather_tools import weather_report_tool
+from tools.weather_tools import weather_report_tool
 from strands import Agent
 from strands.session.s3_session_manager import S3SessionManager
 import boto3
