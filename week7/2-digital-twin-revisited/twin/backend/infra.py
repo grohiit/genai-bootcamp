@@ -43,7 +43,7 @@ class Backend(Construct):
                               environment={
                                     "AWS_LAMBDA_EXEC_WRAPPER": "/opt/bootstrap",
                                     "PORT": "8000",
-                                    "MODEL_ID": "global.anthropic.claude-sonnet-4-5-20250929-v1:0",
+                                    "MODEL_ID": "anthropic.claude-haiku-4-5-20251001-v1:0",
                                     "AWS_LWA_INVOKE_MODE": "response_stream",
                                     "STATE_BUCKET": state_bucket.bucket_name,
                                     "KNOWLEDGE_BASE_ID": kb_id,
