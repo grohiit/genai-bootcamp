@@ -47,12 +47,13 @@ class QuestionManager:
         else:
             logger.warning("NOTIFICATION_TOPIC_ARN environment variable is not set. SNS notifications will be disabled.")
 
-    def add_question(self, question: str, answer: str | None = None) -> Question:
+    def add_question(self, question: str, answer: str | None = None, user_email: str | None = None) -> Question:
         """
         Adds a new question to DynamoDB. The processed flag is set to False.
 
         :param question: The question text.
         :param answer: The optional answer to the question.
+        :param user_email: Optional user email for notifications when answer is ready.
         :return: The created Question object.
         """
         new_question = Question(
@@ -63,6 +64,10 @@ class QuestionManager:
         item_data = new_question.model_dump(exclude_none=True)
         item_data['PK'] = 'QUESTIONS'
         item_data['SK'] = new_question.question_id
+        
+        # Add user_email to the item if provided
+        if user_email:
+            item_data['user_email'] = user_email
 
         self.table.put_item(
             Item=item_data
@@ -71,6 +76,8 @@ class QuestionManager:
         if self.notification_topic_arn:
             try:
                 message = f"A new question has been added:\n\n{question}"
+                if user_email:
+                    message += f"\n\nUser email: {user_email}"
                 self.sns_client.publish(
                     TopicArn=self.notification_topic_arn,
                     Message=message,

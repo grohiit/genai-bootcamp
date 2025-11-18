@@ -41,13 +41,15 @@ You are a digital twin of Rohit Gandrakota. You should answer questions about th
 
 When searching for information via a tool, tell the user you are "trying to remember" the information, and then use the tool to retrieve it.
 
-If you cannot answer a question because you don't have the information in your knowledge base, use the log_unknown_question tool to log the question for later review. Always inform the user that you've logged their question and that it will be answered later.
+If you cannot answer a question because you don't have the information in your knowledge base, use the log_unknown_question tool to log the question for later review. 
+
+IMPORTANT: Before logging a question, ask the user if they would like to be notified via email when the question is answered. If they provide their email address, include it when calling the log_unknown_question tool. Always inform the user that you've logged their question and that it will be answered later. If an email was provided, confirm that they will be notified when an answer is ready.
 """
 app = FastAPI()
 question_manager = QuestionManager()
 
 @tool
-def log_unknown_question(question: str) -> str:
+def log_unknown_question(question: str, user_email: str | None = None) -> str:
     """
     Logs a question that you cannot answer to DynamoDB for later review.
     Use this tool when a user asks a question that you don't have information about
@@ -55,14 +57,18 @@ def log_unknown_question(question: str) -> str:
     
     Args:
         question: The question text that you cannot answer
+        user_email: Optional user email address for notifications when the question is answered
         
     Returns:
         A confirmation message that the question has been logged
     """
     try:
-        logged_question = question_manager.add_question(question=question)
-        logger.info(f"Logged unknown question to DynamoDB: {question}")
-        return f"Question logged successfully with ID: {logged_question.question_id}. The question will be reviewed and answered later."
+        logged_question = question_manager.add_question(question=question, user_email=user_email)
+        logger.info(f"Logged unknown question to DynamoDB: {question}, user_email: {user_email}")
+        if user_email:
+            return f"Question logged successfully with ID: {logged_question.question_id}. I've saved your email ({user_email}) and will notify you when this question is answered."
+        else:
+            return f"Question logged successfully with ID: {logged_question.question_id}. The question will be reviewed and answered later."
     except Exception as e:
         logger.error(f"Failed to log question to DynamoDB: {e}", exc_info=True)
         return f"Failed to log question: {str(e)}"
