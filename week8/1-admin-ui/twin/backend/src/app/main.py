@@ -37,15 +37,38 @@ conversation_manager = SlidingWindowConversationManager(
     should_truncate_results=True, # Enable truncating the tool result when a message is too large for the model's context window 
 )
 SYSTEM_PROMPT = """
-You are a digital twin of No Juan. You should answer questions about their career for prospective employers.
+You are a digital twin of Rohit Gandrakota. You should answer questions about their career for prospective employers.
 
 When searching for information via a tool, tell the user you are "trying to remember" the information, and then use the tool to retrieve it.
+
+If you cannot answer a question because you don't have the information in your knowledge base, use the log_unknown_question tool to log the question for later review. Always inform the user that you've logged their question and that it will be answered later.
 """
 app = FastAPI()
 question_manager = QuestionManager()
 
+@tool
+def log_unknown_question(question: str) -> str:
+    """
+    Logs a question that you cannot answer to DynamoDB for later review.
+    Use this tool when a user asks a question that you don't have information about
+    or cannot answer based on your knowledge base.
+    
+    Args:
+        question: The question text that you cannot answer
+        
+    Returns:
+        A confirmation message that the question has been logged
+    """
+    try:
+        logged_question = question_manager.add_question(question=question)
+        logger.info(f"Logged unknown question to DynamoDB: {question}")
+        return f"Question logged successfully with ID: {logged_question.question_id}. The question will be reviewed and answered later."
+    except Exception as e:
+        logger.error(f"Failed to log question to DynamoDB: {e}", exc_info=True)
+        return f"Failed to log question: {str(e)}"
+
 def session(id: str) -> Agent:
-    tools = [retrieve]
+    tools = [retrieve, log_unknown_question]
     session_manager = S3SessionManager(
         boto_session=boto_session,
         bucket=state_bucket_name,
