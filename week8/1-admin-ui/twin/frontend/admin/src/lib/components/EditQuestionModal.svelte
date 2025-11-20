@@ -7,18 +7,20 @@
 
 	let questionText = $state('');
 	let answerText = $state('');
+	let userEmail = $state('');
 
 	$effect(() => {
 		if (show) {
 			questionText = question?.question ?? '';
 			answerText = question?.answer ?? '';
+			userEmail = (question as any)?.user_email ?? '';
 		}
 	});
 
 	function handleSave(event: SubmitEvent) {
 		event.preventDefault();
 		if (questionText.trim()) {
-			onSave({ question: questionText.trim(), answer: answerText.trim() || null });
+			onSave({ question: questionText.trim(), answer: answerText.trim() || null, user_email: userEmail.trim() || null });
 		}
 	}
 
@@ -53,6 +55,19 @@
 					class="block w-full rounded-xl border-0 bg-slate-50/50 py-4 px-4 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 transition-all duration-200 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-indigo-500 dark:bg-slate-800/50 dark:text-white dark:ring-slate-700 dark:focus:bg-slate-800 dark:focus:ring-indigo-400 resize-none"
 					placeholder="Provide a comprehensive answer that will help users understand this topic..."
 				></textarea>
+			</div>
+
+			<div>
+				<label for="userEmail" class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+					Question asked by
+				</label>
+				<input
+					type="email"
+					id="userEmail"
+					bind:value={userEmail}
+					class="block w-full rounded-xl border-0 bg-slate-50/50 py-4 px-4 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-200 transition-all duration-200 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-indigo-500 dark:bg-slate-800/50 dark:text-white dark:ring-slate-700 dark:focus:bg-slate-800 dark:focus:ring-indigo-400"
+					placeholder="user@example.com"
+				/>
 			</div>
 		</div>
 
